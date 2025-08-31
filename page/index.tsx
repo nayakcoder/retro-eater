@@ -677,6 +677,17 @@ const PlatformerGame = () => {
   
   const gameAreaRef = useRef(null);
   
+  const keysRef = useRef(keys);
+  keysRef.current = keys;
+  const playerRef = useRef(player);
+  playerRef.current = player;
+  const coinsRef = useRef(coins);
+  coinsRef.current = coins;
+  const enemiesRef = useRef(enemies);
+  enemiesRef.current = enemies;
+  const levelPowerUpsRef = useRef(levelPowerUps);
+  levelPowerUpsRef.current = levelPowerUps;
+
   // Handle keyboard input (arrow keys and WASD)
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -736,10 +747,10 @@ const PlatformerGame = () => {
         const speed = prev.powerUp === 'speedBoost' ? PLAYER_SPEED * 1.5 : PLAYER_SPEED;
         
         // Horizontal movement
-        if (keys.left) {
+        if (keysRef.current.left) {
           newX = Math.max(0, prev.x - speed);
         }
-        if (keys.right) {
+        if (keysRef.current.right) {
           newX = Math.min(GAME_WIDTH - prev.width, prev.x + speed);
         }
         
@@ -787,12 +798,12 @@ const PlatformerGame = () => {
         }
         
         // Jumping
-        if (keys.up && !prev.isJumping && (onPlatform || newY >= GAME_HEIGHT - prev.height)) {
+        if (keysRef.current.up && !prev.isJumping && (onPlatform || newY >= GAME_HEIGHT - prev.height)) {
           newVelocityY = JUMP_FORCE;
           isJumping = true;
         } 
         // Double jump
-        else if (keys.up && prev.powerUp === 'doubleJump' && !onPlatform && !prev.doubleJumpUsed) {
+        else if (keysRef.current.up && prev.powerUp === 'doubleJump' && !onPlatform && !prev.doubleJumpUsed) {
           newVelocityY = JUMP_FORCE;
           isJumping = true;
           doubleJumpUsed = true;
@@ -804,7 +815,7 @@ const PlatformerGame = () => {
           y: newY,
           velocityY: newVelocityY,
           isJumping,
-          direction: keys.left ? 'left' : keys.right ? 'right' : prev.direction,
+          direction: keysRef.current.left ? 'left' : keysRef.current.right ? 'right' : prev.direction,
           doubleJumpUsed,
         };
       });
@@ -824,8 +835,8 @@ const PlatformerGame = () => {
         return prevCoins.map(coin => {
           if (!coin.collected) {
             const distance = Math.sqrt(
-              Math.pow(player.x + player.width/2 - coin.x, 2) +
-              Math.pow(player.y + player.height/2 - coin.y, 2)
+              Math.pow(playerRef.current.x + playerRef.current.width/2 - coin.x, 2) +
+              Math.pow(playerRef.current.y + playerRef.current.height/2 - coin.y, 2)
             );
             if (distance < 30) {
               setScore(prev => prev + 100);
@@ -842,8 +853,8 @@ const PlatformerGame = () => {
         return prevPowerUps.map(powerUp => {
           if (!powerUp.collected) {
             const distance = Math.sqrt(
-              Math.pow(player.x + player.width/2 - powerUp.x, 2) +
-              Math.pow(player.y + player.height/2 - powerUp.y, 2)
+              Math.pow(playerRef.current.x + playerRef.current.width/2 - powerUp.x, 2) +
+              Math.pow(playerRef.current.y + playerRef.current.height/2 - powerUp.y, 2)
             );
             if (distance < 30) {
               setPlayer(prev => ({
@@ -884,15 +895,15 @@ const PlatformerGame = () => {
       });
       
       // Check enemy collision
-      enemies.forEach(enemy => {
+      enemiesRef.current.forEach(enemy => {
         if (
-          player.x < enemy.x + enemy.width &&
-          player.x + player.width > enemy.x &&
-          player.y < enemy.y + enemy.height &&
-          player.y + player.height > enemy.y
+          playerRef.current.x < enemy.x + enemy.width &&
+          playerRef.current.x + playerRef.current.width > enemy.x &&
+          playerRef.current.y < enemy.y + enemy.height &&
+          playerRef.current.y + playerRef.current.height > enemy.y
         ) {
           // Player hit by enemy
-          if (player.powerUp !== 'shield') {
+          if (playerRef.current.powerUp !== 'shield') {
             setLives(prev => {
               const newLives = prev - 1;
               if (newLives <= 0) {
@@ -902,7 +913,7 @@ const PlatformerGame = () => {
             });
             
             // Create particles
-            createParticles(player.x + player.width/2, player.y + player.height/2, '#EF4444');
+            createParticles(playerRef.current.x + playerRef.current.width/2, playerRef.current.y + playerRef.current.height/2, '#EF4444');
             
             // Reset player position
             setPlayer(prev => ({
@@ -921,7 +932,7 @@ const PlatformerGame = () => {
       });
       
       // Check win condition
-      const allCoinsCollected = coins.every(coin => coin.collected);
+      const allCoinsCollected = coinsRef.current.every(coin => coin.collected);
       if (allCoinsCollected) {
         if (level < levels.length) {
           // Move to next level
@@ -947,7 +958,7 @@ const PlatformerGame = () => {
     }, 1000 / 60); // ~60fps
     
     return () => clearInterval(gameLoop);
-  }, [keys, gameStarted, gameOver, player, coins, enemies, level, currentLevel]);
+  }, [gameStarted, gameOver, level]);
   
   const startGame = () => {
     setGameStarted(true);
